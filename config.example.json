@@ -1,0 +1,8 @@
+{
+  "capture_hotkey": "alt+q",
+  "popup_position": "capture",
+  "ocr_languages": ["en", "ja"],
+  "ocr_scale": 2.0,
+  "theme": "light",
+  "log_ocr_text": false
+}

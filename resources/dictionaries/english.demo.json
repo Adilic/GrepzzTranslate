@@ -1,0 +1,20 @@
+[
+  {"headword":"considerable","phonetic":"/kənˈsɪdərəbəl/","part_of_speech":"adj.","meaning":"相当大的；大量的"},
+  {"headword":"deteriorate","phonetic":"/dɪˈtɪəriəreɪt/","part_of_speech":"v.","meaning":"恶化；变坏","forms":["deteriorated","deteriorating"]},
+  {"headword":"experience","phonetic":"/ɪkˈspɪəriəns/","part_of_speech":"n. / v.","meaning":"经验；经历；体验"},
+  {"headword":"read","phonetic":"/riːd/","part_of_speech":"v.","meaning":"阅读；读懂","forms":["reading"]},
+  {"headword":"book","phonetic":"/bʊk/","part_of_speech":"n.","meaning":"书；书籍"},
+  {"headword":"language","phonetic":"/ˈlæŋɡwɪdʒ/","part_of_speech":"n.","meaning":"语言"},
+  {"headword":"understand","phonetic":"/ˌʌndəˈstænd/","part_of_speech":"v.","meaning":"理解；明白","forms":["understood"]},
+  {"headword":"learn","phonetic":"/lɜːn/","part_of_speech":"v.","meaning":"学习；获悉","forms":["learnt"]},
+  {"headword":"beautiful","phonetic":"/ˈbjuːtɪfəl/","part_of_speech":"adj.","meaning":"美丽的"},
+  {"headword":"important","phonetic":"/ɪmˈpɔːtənt/","part_of_speech":"adj.","meaning":"重要的"},
+  {"headword":"situation","phonetic":"/ˌsɪtʃuˈeɪʃən/","part_of_speech":"n.","meaning":"情况；处境"},
+  {"headword":"rapidly","phonetic":"/ˈræpɪdli/","part_of_speech":"adv.","meaning":"迅速地"},
+  {"headword":"run","phonetic":"/rʌn/","part_of_speech":"v.","meaning":"跑；运行","forms":["ran","running"]},
+  {"headword":"go","phonetic":"/ɡəʊ/","part_of_speech":"v.","meaning":"去；前往","forms":["went","gone"]},
+  {"headword":"take care of","part_of_speech":"phrase","meaning":"照顾；处理"},
+  {"headword":"hello","phonetic":"/həˈləʊ/","part_of_speech":"interj.","meaning":"你好"},
+  {"headword":"world","phonetic":"/wɜːld/","part_of_speech":"n.","meaning":"世界"},
+  {"headword":"study","phonetic":"/ˈstʌdi/","part_of_speech":"v. / n.","meaning":"学习；研究","forms":["studied","studies"]}
+]
