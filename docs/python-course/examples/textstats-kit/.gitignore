@@ -1,0 +1,10 @@
+.venv/
+.verify-venv/
+build/
+dist/
+*.egg-info/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+!src/textstats_kit/data/
+!src/textstats_kit/data/example.txt

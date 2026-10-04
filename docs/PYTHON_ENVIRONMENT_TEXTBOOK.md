@@ -1,5 +1,7 @@
 # 从零理解 Python 环境、项目结构与双机迁移
 
+> 如果希望学习适用于其他 Python 项目的通用原理，请优先阅读新的 [三册 Python 工程教材](python-course/README.md)。本篇保留为 GrepzzTranslate 的入门案例说明。
+
 以 GrepzzTranslate 为贯穿案例 · Windows / PowerShell · 2026-10-04
 
 这份教材面向刚接触开发的人。目标不是让你背下安装命令，而是让你能回答：程序在哪里、谁在运行它、依赖装到了哪里、哪些文件应该同步，以及第二台电脑缺了什么。

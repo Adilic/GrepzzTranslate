@@ -1,6 +1,6 @@
 # GrepzzTranslate
 
-**刚接触 Python？先读 [Python 环境、项目结构与迁移基础教材](docs/PYTHON_ENVIRONMENT_TEXTBOOK.md)。** 12 章从零讲起，附命令解释、练习答案、独立实验和速查表；再读下面的双机开发手册进行实际部署。
+**学习适用于不同项目的 Python 工程基础：阅读 [三册通用教材](docs/python-course/README.md)。** 从进程、解释器和 import 原理讲到依赖、结构、测试、打包与迁移，附独立可运行项目、六个实验、故障案例和答案。原先以本项目为例的 [入门说明](docs/PYTHON_ENVIRONMENT_TEXTBOOK.md) 仍保留，可用来对照。
 
 **两台电脑继续开发？先看 [双机开发与项目理解手册](docs/DEVELOPMENT.md)。** 首次克隆后执行 `powershell -ExecutionPolicy Bypass -File scripts/setup-dev.ps1`；环境检查使用 `.\.venv\Scripts\python.exe scripts/check-dev.py`。手册涵盖部署、资源迁移、Git 接力、架构、测试和排错。
 
