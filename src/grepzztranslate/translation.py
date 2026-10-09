@@ -16,7 +16,7 @@ class TranslationService:
 
     def translate(self, text: str, language: str) -> str:
         if len(text) > 1200:
-            raise ValueError("选区文字超过 1200 字符，请分段框选，以保证翻译速度。")
+            raise ValueError("选区文字超过 1200 字符，请分段选择，以保证翻译速度。")
         if not self.available(language):
             raise RuntimeError("未安装离线翻译模型，请使用包含 resources/translation 的完整发行版。")
         if language == "Japanese":

@@ -9,6 +9,7 @@ from .config import Config, ConfigManager
 from .hotkey import HotkeyManager
 from .models import LookupResult
 from .paths import PathManager
+from .selection import SelectionReader
 from .ui import LookupPopup, SettingsDialog
 from .worker import LookupWorker
 
@@ -55,10 +56,16 @@ class ApplicationController(QObject):
         self.popup.recapture_requested.connect(self.start_capture)
         self.hotkey = HotkeyManager(app)
         self.hotkey.triggered.connect(self.start_capture)
+        self.selection_hotkey = HotkeyManager(app, 0x4755)
+        self.selection_hotkey.triggered.connect(self.start_selection)
+        self.selection = SelectionReader(self)
+        self.selection.selected.connect(self.on_selection)
+        self.selection.failed.connect(self.selection_error)
         self.tray = QSystemTrayIcon(app_icon(), self)
         self.tray.setToolTip("GrepzzTranslate · " + config.capture_hotkey)
         self.menu = QMenu()
         self.menu.addAction("截图查词 · " + config.capture_hotkey, self.start_capture)
+        self.menu.addAction("划词翻译 · Alt+1（选中文字后按快捷键）").setEnabled(False)
         self.menu.addSeparator()
         self.menu.addAction("Open Settings · 设置", self.settings)
         self.menu.addAction("Reload Resources · 重新加载", self.reload)
@@ -89,6 +96,10 @@ class ApplicationController(QObject):
             self.hotkey.register(config.capture_hotkey)
         except Exception as exc:
             QTimer.singleShot(0, lambda message=str(exc): self.notify(message))
+        try:
+            self.selection_hotkey.register("alt+1")
+        except Exception as exc:
+            QTimer.singleShot(0, lambda message=str(exc): self.notify(message))
 
     def notify(self, message: str) -> None:
         log.warning(message)
@@ -108,7 +119,7 @@ class ApplicationController(QObject):
         if warnings:
             self.notify("\n".join(warnings))
         else:
-            self.tray.showMessage("GrepzzTranslate 已就绪", f"按 {self.config.capture_hotkey} 截图查词，点击外部自动收起。")
+            self.tray.showMessage("GrepzzTranslate 已就绪", f"选中文字按 Alt+1 翻译；按 {self.config.capture_hotkey} 截图。点击外部自动收起。")
         log.info("Resources ready; warnings=%d", len(warnings))
 
     def initialization_timeout(self) -> None:
@@ -116,7 +127,7 @@ class ApplicationController(QObject):
             self.notify("启动超过 30 秒仍未完成。请退出后使用完整发行目录中的程序重新打开；详细信息见 logs/grepzztranslate.log。")
 
     def start_capture(self) -> None:
-        if self.exiting or self.capture.active:
+        if self.exiting or self.capture.active or self.selection.active:
             return
         if self.busy or self.initializing:
             message = "正在初始化本地资源…" if self.initializing else "正在本地识别或翻译上一个选区…"
@@ -128,6 +139,25 @@ class ApplicationController(QObject):
         self.popup.hide()
         # 浮窓を隠した次のイベントで画面を取得する。
         QTimer.singleShot(60, self.begin_capture)
+
+    def start_selection(self) -> None:
+        if self.exiting or self.capture.active or self.selection.active:
+            return
+        if self.busy or self.initializing:
+            self.tray.showMessage("GrepzzTranslate", "正在准备本地资源或处理上次翻译，请稍候再按 Alt+1。")
+            return
+        # Do not show/activate a popup until the foreground app has copied text.
+        self.request_id += 1
+        self.anchor = QRect(QCursor.pos(), QCursor.pos() + QPoint(1, 1))
+        self.selection.start()
+
+    def on_selection(self, text: str) -> None:
+        self.correct_text(text)
+
+    def selection_error(self, message: str) -> None:
+        if not self.exiting:
+            log.warning("Selection read failed: %s", message)
+            self.popup.show_message(message, self.anchor)
 
     def begin_capture(self) -> None:
         if self.exiting:
@@ -152,7 +182,7 @@ class ApplicationController(QObject):
             return
         self.request_id += 1
         self.busy = True
-        self.popup.show_message("正在查询本地词库…", self.anchor)
+        self.popup.show_message("正在本地查询与翻译…", self.anchor)
         self.text_lookup_requested.emit(self.request_id, text)
 
     @Slot(int, object)
@@ -171,7 +201,7 @@ class ApplicationController(QObject):
         self.request_id += 1
 
     def reload(self) -> None:
-        if self.busy or self.initializing or self.exiting:
+        if self.busy or self.initializing or self.exiting or self.selection.active:
             self.tray.showMessage("GrepzzTranslate", "请等待当前识别或初始化完成。")
             return
         self.initializing = True
@@ -179,7 +209,7 @@ class ApplicationController(QObject):
         self.reload_requested.emit()
 
     def settings(self) -> None:
-        if self.busy or self.initializing or self.capture.active:
+        if self.busy or self.initializing or self.capture.active or self.selection.active:
             self.tray.showMessage("GrepzzTranslate", "请等待当前操作完成。")
             return
         dialog = SettingsDialog(self.config)
@@ -213,6 +243,8 @@ class ApplicationController(QObject):
             return
         self.exiting = True
         self.hotkey.unregister()
+        self.selection_hotkey.unregister()
+        self.selection.cancel()
         self.capture.cancel()
         self.popup.hide()
         self.tray.hide()

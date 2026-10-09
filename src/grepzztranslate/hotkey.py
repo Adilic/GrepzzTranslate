@@ -35,7 +35,7 @@ class _NativeFilter(QAbstractNativeEventFilter):
         if bytes(event_type) in (b"windows_generic_MSG", b"windows_dispatcher_MSG"):
             msg = wintypes.MSG.from_address(int(message))
             if msg.message == 0x0312 and msg.wParam == self.owner.hotkey_id:
-                log.info("Capture hotkey triggered")
+                log.info("Hotkey triggered: %s", self.owner.value)
                 self.owner.triggered.emit()
                 return True, 0
         return False, 0
@@ -44,10 +44,10 @@ class _NativeFilter(QAbstractNativeEventFilter):
 class HotkeyManager(QObject):
     triggered = Signal()
 
-    def __init__(self, app: QApplication) -> None:
+    def __init__(self, app: QApplication, hotkey_id: int = 0x4754) -> None:
         super().__init__()
         self.app = app
-        self.hotkey_id = 0x4754
+        self.hotkey_id = hotkey_id
         self.registered = False
         self.value = ""
         self.filter = _NativeFilter(self)

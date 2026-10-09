@@ -5,7 +5,7 @@ root = Path(__file__).resolve().parents[1]
 bundle = root / "dist" / "GrepzzTranslate"
 if not (bundle / "GrepzzTranslate.exe").exists():
     raise SystemExit("请先运行 scripts/build.ps1")
-target = root / "dist" / "GrepzzTranslate-v0.1.5-windows-x64.zip"
+target = root / "dist" / "GrepzzTranslate-v0.1.6-windows-x64.zip"
 with ZipFile(target, "w", ZIP_DEFLATED, compresslevel=6) as archive:
     for path in sorted(bundle.rglob("*")):
         relative = path.relative_to(bundle)

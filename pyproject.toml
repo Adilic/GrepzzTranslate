@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "grepzztranslate"
-version = "0.1.5"
+version = "0.1.6"
 description = "Offline English and Japanese screen lookup for Windows"
 requires-python = ">=3.12"
 dependencies = [

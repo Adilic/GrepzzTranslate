@@ -1,14 +1,17 @@
 import json
 import logging
 import time
+import ctypes
+import sys
 
 from PySide6.QtCore import QPoint, QRect, Qt
 from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QLabel, QPushButton, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget
 
 from .app import ApplicationController
 from .config import Config
 from .storage import HistoryRepository
+from .selection import _Input, _Keyboard
 
 log = logging.getLogger(__name__)
 
@@ -35,6 +38,7 @@ def run_self_test(app, paths) -> int:
     errors = []
     controller.worker.finished.connect(lambda request_id, result: results.append(result))
     controller.worker.failed.connect(lambda request_id, message: errors.append(message))
+    controller.selection.failed.connect(errors.append)
     controller.capture.captured.connect(lambda image, rect: image.save(str(paths.logs / f"self-test-capture-{len(results)}.png")))
 
     def wait_until(predicate, timeout=15):
@@ -59,6 +63,8 @@ def run_self_test(app, paths) -> int:
         controller.worker.history = HistoryRepository(paths.data / "self-test-history.db")
         samples = [("considerable", None), ("Windows", None), ("apple", None), ("経験", "けいけん"),
                    ("beautiful world", None), ("The situation deteriorated rapidly.", None), ("今日はいい天気です。", None)]
+        if "--selection-only" in sys.argv:
+            samples = []
         for index, (text, reading) in enumerate(samples):
             label.setStyleSheet("font-family: 'Yu Gothic', 'Segoe UI'; font-size: " + ("24px;" if len(text) > 25 else "38px;"))
             label.setText(text)
@@ -106,6 +112,70 @@ def run_self_test(app, paths) -> int:
                             "close_method": close_method,
                             "native_monitor_installed": True,
                             "background_alive": True, "hotkey_registered": controller.hotkey.registered})
+        assert controller.selection_hotkey.registered, "Alt+1 注册失败"
+        editor = QLineEdit(window)
+        layout.addWidget(editor)
+        clipboard = app.clipboard()
+        original = clipboard.mimeData()
+        from PySide6.QtCore import QMimeData
+        saved = QMimeData()
+        if original:
+            for fmt in original.formats():
+                saved.setData(fmt, original.data(fmt))
+        try:
+            for text in ("book", "I am reading a book.", "今日はいい天気です。"):
+                controller.popup.hide()
+                window.show()
+                window.raise_()
+                window.activateWindow()
+                editor.setText(text)
+                editor.setFocus()
+                editor.selectAll()
+                settle()
+                api = controller.selection.backend.api
+                api.SetForegroundWindow.argtypes = [ctypes.c_void_p]
+                api.SetForegroundWindow.restype = ctypes.c_int
+                api.SetForegroundWindow(int(window.winId()))
+                settle(0.2)
+                # A real click restores keyboard focus after dismissing a popup.
+                from ctypes import wintypes
+                previous_cursor = wintypes.POINT()
+                api.GetCursorPos(ctypes.byref(previous_cursor))
+                local = editor.mapTo(window, editor.rect().center())
+                ratio = window.devicePixelRatioF()
+                point = wintypes.POINT(round(local.x() * ratio), round(local.y() * ratio))
+                api.ClientToScreen.argtypes = [ctypes.c_void_p, ctypes.POINTER(wintypes.POINT)]
+                api.ClientToScreen(int(window.winId()), ctypes.byref(point))
+                api.SetCursorPos(point.x, point.y)
+                clicks = (_Input * 2)()
+                clicks[0].payload.mouse.flags = 0x0002
+                clicks[1].payload.mouse.flags = 0x0004
+                api.SendInput(2, clicks, ctypes.sizeof(_Input))
+                settle(0.2)
+                api.SetCursorPos(previous_cursor.x, previous_cursor.y)
+                editor.selectAll()
+                assert controller.selection.backend.foreground() == int(window.winId()), "测试窗口未获得焦点"
+                clipboard.setText("selection self-test sentinel")
+                count = len(results)
+                keys = (_Input * 4)()
+                for event, (vk, flags) in zip(keys, [(0x12, 0), (0x31, 0), (0x31, 2), (0x12, 2)]):
+                    event.type = 1
+                    event.payload.keyboard = _Keyboard(vk, 0, flags, 0, 0)
+                assert controller.selection.backend.api.SendInput(4, keys, ctypes.sizeof(_Input)) == 4
+                wait_until(lambda: len(results) > count or errors, timeout=30)
+                assert not errors, errors
+                result = results[-1]
+                assert result.normalized_text == text and result.meaning
+                assert result.translated == (text != "book")
+                assert clipboard.text() == "selection self-test sentinel"
+                assert controller.popup.isVisible()
+                QTest.mouseClick(continue_button, Qt.MouseButton.LeftButton)
+                assert not controller.popup.isVisible()
+                records.append({"selection": text, "native_alt_1": True,
+                                "translated": result.translated, "clipboard_restored": True,
+                                "outside_dismiss": True})
+        finally:
+            clipboard.setMimeData(saved)
     except Exception as exc:
         log.exception("Self-test failed")
         error = str(exc)
@@ -114,7 +184,7 @@ def run_self_test(app, paths) -> int:
         controller.exit()
         wait_until(lambda: not controller.thread.isRunning())
     report = {"passed": not error, "error": error, "checks": records,
-              "note": "真实屏幕截图；框选通过 Qt 测试事件驱动。物理 Alt+Q 另行验证。"}
+              "note": "真实屏幕截图；框选和外部点击由 Qt 测试事件驱动；Alt+1 由 Windows SendInput 触发，原生复制读取可编辑测试文本。未覆盖 Chrome PDF。"}
     (paths.logs / "self-test.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     log.info("Self-test: %s", report)
     return 1 if error else 0

@@ -301,6 +301,7 @@ class SettingsDialog(QDialog):
         layout = QFormLayout(self)
         self.hotkey = QLineEdit(config.capture_hotkey)
         layout.addRow("截图快捷键", self.hotkey)
+        layout.addRow("划词快捷键", QLabel("Alt+1 · 选中文字后触发"))
         self.position = QComboBox()
         self.position.addItems(["capture", "cursor"])
         self.position.setCurrentText(config.popup_position)

@@ -16,6 +16,8 @@ class Config:
         from .hotkey import parse_hotkey
 
         parse_hotkey(self.capture_hotkey)
+        if parse_hotkey(self.capture_hotkey) == parse_hotkey("alt+1"):
+            raise ValueError("Alt+1 已用于划词翻译，请为截图选择其他快捷键。")
         if self.popup_position not in {"capture", "cursor"}:
             raise ValueError("popup_position 必须为 capture 或 cursor")
         if not isinstance(self.ocr_languages, list) or not self.ocr_languages or any(x not in ("en", "ja") for x in self.ocr_languages):

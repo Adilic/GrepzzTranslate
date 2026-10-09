@@ -64,7 +64,7 @@ class LookupService:
                 setattr(result, field, entry.get(field))
             result.reading = result.reading or entry.get("reading")
             log.info("Lookup success")
-        elif self.translation.available(language) and (language == "Japanese" or len(re.findall(r"[A-Za-z]+", normalized)) > 1):
+        elif self.translation.available(language):
             try:
                 result.meaning = self.translation.translate(normalized, language)
                 result.translated = True
