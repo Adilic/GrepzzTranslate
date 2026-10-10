@@ -69,6 +69,8 @@ class LookupService:
                 result.meaning = self.translation.translate(normalized, language)
                 result.translated = True
                 result.source = "本地离线翻译" + (" · 日→英→中" if language == "Japanese" else " · 英→中")
+                if language == "Japanese" and self.translation.japanese_model.available():
+                    result.source += " · LFM2"
                 log.info("Offline translation complete: %s", language)
             except Exception as exc:
                 log.exception("Offline translation failed")

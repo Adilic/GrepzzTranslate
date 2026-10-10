@@ -3,14 +3,17 @@ import json
 import re
 from pathlib import Path
 
+from .japanese_model import JapaneseModelService
+
 
 class TranslationService:
     def __init__(self, root: Path):
         self.root = root
         self.models = {}
+        self.japanese_model = JapaneseModelService(root / "ja_en_lfm")
 
     def available(self, language: str) -> bool:
-        pairs = ["en_zh"] if language == "English" else ["ja_en", "en_zh"]
+        pairs = ["en_zh"] if language == "English" or self.japanese_model.available() else ["ja_en", "en_zh"]
         return all((self.root / pair / "model" / "model.bin").is_file()
                    and (self.root / pair / "sentencepiece.model").is_file() for pair in pairs)
 
@@ -20,7 +23,8 @@ class TranslationService:
         if not self.available(language):
             raise RuntimeError("未安装离线翻译模型，请使用包含 resources/translation 的完整发行版。")
         if language == "Japanese":
-            text = self._translate_pair(text, "ja_en")
+            text = (self.japanese_model.translate(text) if self.japanese_model.available()
+                    else self._translate_pair(text, "ja_en"))
         return self._translate_pair(text, "en_zh")
 
     def _translate_pair(self, text: str, pair: str) -> str:

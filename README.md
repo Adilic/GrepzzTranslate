@@ -6,6 +6,8 @@
 
 Windows 本地英语 / 日语阅读翻译工具。**选中文字后按 Alt + 1**，直接查词或翻译，无需截图、无需手动复制；无法选中文字时，仍可按 **Alt + Q** 截图翻译。看完点击窗口外即可继续阅读，Esc 也可关闭。
 
+**v0.1.7 可选日语模型（试验性）**：支持 LFM2-350M-ENJP-MT Q4_K_M（日英专用，权重 229,310,240 字节，约 229 MB / 219 MiB），接上现有英中模型输出中文，并保留 Sudachi 注音。短句在开发机通常约 0.6～0.8 秒，首次加载更慢；**复杂否定和长句仍可能译反，尚不能作为可靠的整页阅读译文**。模型采用 **LFM Open License v1.0**，属于开放权重许可，含商业营收限制，**不是 Apache/MIT**。默认安装仍使用原有模型；来源、对比和实际译文见 [日语模型实测](docs/JAPANESE_MODEL_EVALUATION.md)。
+
 **阅读浮窗**：看完后直接点击窗口外任意位置即可收起，点击会继续传给原窗口；切换应用同样收起。识别过程中点击外部会取消这次结果的显示，识别结束不会再弹回来。Esc 仍可关闭。默认使用浅色、薄荷绿和圆角阴影，OCR 原文修正框默认隐藏，点击右上角“修正”再展开。
 
 适用于 Kindle、PDF、网页、图片、扫描文档等屏幕内容。运行时不调用网络服务，不接入 AI / 翻译 API，不持续监听剪贴板。Alt+1 触发时，会临时模拟 Ctrl+C 读取当前选中文字，成功后恢复之前通过 Qt 读取到的剪贴板格式；若其他程序改写剪贴板则取消，避免覆盖新内容。某些软件专有的剪贴板格式不保证完整恢复。截图功能不使用剪贴板。截图只在内存中处理，不保存图片。查询文本保存到本机 `data/history.db`；日志默认不保存 OCR 原文，可在设置中开启。
@@ -94,6 +96,18 @@ Add-WindowsCapability -Online -Name 'Language.OCR~~~ja-JP~0.0.1.0'
 - 词典数据库采用 `entries(headword, reading, phonetic, part_of_speech, meaning)` 和 `forms(form, headword)` 两张表，`headword`、`form` 为主键。未来导入器应在运行前将 ECDICT / JMdict 转成此结构；禁止运行时解析完整 XML。
 
 短语和句子由 resources/translation 中的离线模型翻译，CPU 推理，不依赖在线接口。只有开发环境未装模型时才回退为逐词释义，并明确标注不是整句翻译。
+
+### 可选日语模型的安装与迁移
+
+在了解并接受 [模型许可](https://huggingface.co/LiquidAI/LFM2-350M-ENJP-MT-GGUF/blob/main/LICENSE) 后，可安装较新的日语模型：
+
+```powershell
+.\.venv\Scripts\python.exe scripts/install_japanese_model.py
+```
+
+安装脚本从固定版本下载并校验官方 GGUF 权重和官方 llama.cpp Windows CPU 运行文件，保存到 `resources/translation/ja_en_lfm/`。运行时调用本地隐藏进程，并强制使用离线模式，不启动 HTTP 服务，不需要安装 PyTorch、Ollama 或模型仓库的 Python 代码。资源完整时优先使用此模型；未安装时兼容原有 Argos 日英模型。模型运行出错会明确提示。
+
+两台电脑迁移时复制整个 `resources/translation/ja_en_lfm/`，包括 `runtime/`、元数据、来源记录和许可；同时保留 `resources/translation/en_zh/`。或者在第二台电脑运行上述安装脚本重新下载。权重和运行程序不上传 GitHub，安装脚本和代码会同步。打包时仅包含选中的模型；失败候选及 PyTorch 测试环境不进入发行包。
 
 ## 配置与数据
 

@@ -123,7 +123,10 @@ def run_self_test(app, paths) -> int:
             for fmt in original.formats():
                 saved.setData(fmt, original.data(fmt))
         try:
-            for text in ("book", "I am reading a book.", "今日はいい天気です。"):
+            selection_samples = ["book", "I am reading a book.", "今日はいい天気です。"]
+            if controller.worker.lookup.translation.japanese_model.available():
+                selection_samples.append("自分をけなさないでください。")
+            for index, text in enumerate(selection_samples):
                 controller.popup.hide()
                 window.show()
                 window.raise_()
@@ -167,8 +170,17 @@ def run_self_test(app, paths) -> int:
                 result = results[-1]
                 assert result.normalized_text == text and result.meaning
                 assert result.translated == (text != "book")
+                if result.language == "Japanese":
+                    from .furigana import FuriganaText
+                    assert result.reading and result.tokens, "日语读音丢失"
+                    assert controller.popup.findChild(FuriganaText) is not None, "日语注音未显示"
+                if text == "自分をけなさないでください。":
+                    assert any(word in result.meaning for word in ("轻视", "小看", "贬低", "贬损")), "日语关键动词误译"
+                    assert "不要" in result.meaning or "别" in result.meaning, "日语否定丢失"
                 assert clipboard.text() == "selection self-test sentinel"
                 assert controller.popup.isVisible()
+                settle(0.2)  # Let the scroll area lay out and paint before capturing evidence.
+                controller.popup.grab().save(str(paths.logs / f"self-test-selection-{index}.png"))
                 QTest.mouseClick(continue_button, Qt.MouseButton.LeftButton)
                 assert not controller.popup.isVisible()
                 records.append({"selection": text, "native_alt_1": True,

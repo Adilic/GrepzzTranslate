@@ -20,7 +20,10 @@ if (-not $SkipDownloads) {
     & $pythonExe -c "import sqlite3; c=sqlite3.connect('file:resources/dictionaries/english.db?mode=ro',uri=True); n=c.execute('select count(*) from entries').fetchone()[0]; c.close(); raise SystemExit(0 if n>=500000 else 1)"
     if ($LASTEXITCODE -ne 0) { Invoke-CheckedPython scripts/install_ecdict.py }
     $modelsComplete = $true
-    foreach ($pair in @('en_zh', 'ja_en')) {
+    $translationPairs = @('en_zh')
+    & $pythonExe -c "from pathlib import Path; from grepzztranslate.japanese_model import JapaneseModelService; raise SystemExit(0 if JapaneseModelService(Path('resources/translation/ja_en_lfm')).available() else 1)"
+    if ($LASTEXITCODE -ne 0) { $translationPairs += 'ja_en' }
+    foreach ($pair in $translationPairs) {
         foreach ($file in @('model\model.bin', 'sentencepiece.model', 'metadata.json')) {
             if (-not (Test-Path -LiteralPath "resources\translation\$pair\$file")) { $modelsComplete = $false }
         }

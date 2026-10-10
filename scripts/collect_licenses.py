@@ -1,9 +1,12 @@
 import importlib.metadata
+import argparse
 import shutil
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
-target = root / "dist" / "GrepzzTranslate" / "licenses"
+parser = argparse.ArgumentParser()
+parser.add_argument("--destination", type=Path, default=root / "dist" / "GrepzzTranslate" / "licenses")
+target = parser.parse_args().destination
 target.mkdir(parents=True, exist_ok=True)
 for distribution in importlib.metadata.distributions():
     for file in distribution.files or []:

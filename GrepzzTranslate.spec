@@ -7,7 +7,7 @@ sudachi_data, sudachi_binaries, sudachi_hidden = collect_all('sudachipy')
 hidden = sudachi_hidden + collect_submodules('winrt')
 a = Analysis([str(root / 'run.py')], pathex=[str(root / 'src')],
              binaries=sudachi_binaries + collect_dynamic_libs('ctranslate2'), datas=sudachi_data, hiddenimports=hidden,
-             excludes=['tkinter', 'pytest'], noarchive=False)
+             excludes=['tkinter', 'pytest', 'torch', 'transformers', 'safetensors'], noarchive=False)
 # Qt は Windows の ICU を使用し、ビルド用 Python の同名 DLL は含めない。
 a.binaries = [item for item in a.binaries if Path(item[0]).name.lower() not in {'icuuc.dll', 'icudt78.dll'}]
 # Sudachi 辞書は resources/sudachi に一度だけ配置する。
