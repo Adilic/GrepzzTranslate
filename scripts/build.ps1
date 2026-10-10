@@ -1,4 +1,4 @@
-param([string]$JapaneseModelPath = '', [switch]$Preview)
+param([string]$JapaneseModelPath = '')
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
 Set-Location -LiteralPath $projectRoot
@@ -48,7 +48,7 @@ if (Test-Path -LiteralPath 'resources\licenses') {
     Copy-Item -LiteralPath 'resources\licenses' -Destination "$bundle\resources" -Recurse -Force
 }
 Copy-Item -LiteralPath 'README.md', 'THIRD_PARTY_NOTICES.md' -Destination $bundle
-$releaseBundle = Join-Path $projectRoot $(if ($Preview) { 'build\japanese-model-preview\GrepzzTranslate' } else { 'dist\GrepzzTranslate' })
+$releaseBundle = Join-Path $projectRoot 'dist\GrepzzTranslate'
 New-Item -ItemType Directory -Force -Path $releaseBundle | Out-Null
 # Archive previously packaged model candidates so they do not inflate the release.
 foreach ($oldPair in @('ja_en', 'ja_zh', 'ja_en_lfm')) {

@@ -2,9 +2,9 @@
 
 ## 当前结论
 
-本次比较八个小型候选。LFM2-350M 的短句表现最好，已接入可选后端并生成独立试验 EXE，但复杂否定仍会出错，不能声称日语翻译问题已经全面解决。日常使用的 `dist/GrepzzTranslate/` 没有换模型；试验版位于 `build/japanese-model-preview/GrepzzTranslate/`。
+本次比较八个小型候选。LFM2-350M 的短句表现最好，已直接接入主项目和日常 EXE，但复杂否定仍会出错，不能声称日语翻译问题已经全面解决。按用户要求，统一在主项目中开发和测试，日常程序为 `dist/GrepzzTranslate/GrepzzTranslate.exe`，独立试验 EXE 已删除；旧资源暂留 build/ 缓存，不再运行或参与打包。
 
-LFM 权重约 229 MB，配上 Windows CPU 运行文件、许可和元数据，日英资源目录共 262,687,247 字节（约 263 MB）；还需已有英中模型。这不等于整个应用的大小。它采用 LFM Open License v1.0，属于开放权重许可，不是 Apache/MIT。是否用于日常版本，需要先确定用户能否接受此许可及翻译限制。
+LFM 权重约 229 MB，配上 Windows CPU 运行文件、许可和元数据，日英资源目录共 262,687,247 字节（约 263 MB）；还需已有英中模型。这不等于整个应用的大小。它采用 LFM Open License v1.0，属于开放权重许可，不是 Apache/MIT。用户已要求直接在主项目中使用和测试；上述许可及质量限制仍然适用。
 
 ## 为什么没有选最小的模型
 
@@ -19,7 +19,7 @@ LFM 权重约 229 MB，配上 Windows CPU 运行文件、许可和元数据，�
 | [SMaLL-100](https://huggingface.co/alirezamsh/small100)，[第三方 INT8](https://huggingface.co/luonluonvn/small100_ct2_quant_int8) | 339 MB | 原模型 MIT；第三方转换缺少充分许可说明 | 「けなす」仍译成伤害；未采用此分发资源 |
 | [Qwen3-0.6B Q4_K_M](https://huggingface.co/unsloth/Qwen3-0.6B-GGUF) | 397 MB | Apache-2.0 | 有时原样返回日文，出现严重动词误译 |
 | [Qwen3.5-0.8B Q4_K_M](https://huggingface.co/unsloth/Qwen3.5-0.8B-GGUF) | 533 MB | Apache-2.0 | 「けなさない」仍译成不要让自己受伤；部分提示下丢失否定 |
-| [LFM2-350M-ENJP-MT Q4_K_M](https://huggingface.co/LiquidAI/LFM2-350M-ENJP-MT-GGUF) | 229 MB | LFM Open License v1.0，含商业营收限制 | 短句改善明显，但长句会把复杂否定译反；仅作为试验选项 |
+| [LFM2-350M-ENJP-MT Q4_K_M](https://huggingface.co/LiquidAI/LFM2-350M-ENJP-MT-GGUF) | 229 MB | LFM Open License v1.0，含商业营收限制 | 短句改善明显，但长句会把复杂否定译反；已接入主程序，仍有已知误译 |
 
 Marian 候选使用独立评估环境转换为 CTranslate2 INT8。转换时保留实际解码起始嵌入，并禁止生成 pad token，避免把错误转换的结果当作模型质量。GGUF 候选使用官方 llama.cpp CPU 运行文件。尝试过不同提示词及自然标点，未通过为「けなす」写特例替换来制造正确结果。
 
@@ -38,7 +38,7 @@ Marian 候选使用独立评估环境转换为 CTranslate2 INT8。转换时保�
 | まだ読み終わっていません。 | 我还没读完呢 | 大意正确 |
 | 今日はいい天気です。 | 今天天气不错 | 大意正确 |
 
-**必须保留的反例**：关于本书致谢的长句包含「現実から目をそむけずに世の中と関わっていく」，意思是“不逃避现实，参与这个世界”。模型却输出英语 `staying away from reality`，最终成为“远离现实”，否定被译反。拆成两句重试仍未解决。这也是没有自动替换日常模型的原因。
+**必须保留的反例**：关于本书致谢的长句包含「現実から目をそむけずに世の中と関わっていく」，意思是“不逃避现实，参与这个世界”。模型却输出英语 `staying away from reality`，最终成为“远离现实”，否定被译反。拆成两句重试仍未解决。此已知问题仍未解决，接入主程序不代表翻译质量已全面达标。
 
 短句在本开发机完整日中流程通常约 0.6～0.8 秒，首次约 1.7 秒；上述长段落约 1.6 秒。不包括 OCR 和用户操作，也不代表其他电脑的速度。
 
@@ -55,8 +55,8 @@ Marian 候选使用独立评估环境转换为 CTranslate2 INT8。转换时保�
 
 74 项自动测试通过，其中 5 项使用真实可选模型，覆盖短句关键含义、否定、原文和读音保留；不能据此推断任意长句翻译正确。
 
-独立试验 EXE 完成 7 个截图样本、4 个 Alt+1 划词样本，检查结果显示、日语注音、剪贴板恢复、点击外部关闭和后台存活。报告为 `build/japanese-model-preview/GrepzzTranslate/logs/self-test.json`。未覆盖 Chrome PDF 的实际复制限制、其他 Windows 版本或多屏环境。
+主程序 EXE 完成 7 个截图样本、4 个 Alt+1 划词样本，检查结果显示、日语注音、剪贴板恢复、点击外部关闭和后台存活。报告为 `dist/GrepzzTranslate/logs/self-test.json`。未覆盖 Chrome PDF 的实际复制限制、其他 Windows 版本或多屏环境。
 
-试用时先退出日常程序，再打开试验 EXE，避免两者争用全局快捷键。试验完成后可退出并重新打开原程序。**复杂否定仍有已知误译，不建议依赖试验译文判断关键含义。**
+直接使用项目根目录原来的启动快捷方式即可，无需切换版本。**复杂否定仍有已知误译，判断关键含义时请核对原文。**
 
 Git 同步代码、安装脚本、文档和测试；`build/`、`dist/`、模型权重、评估环境、个人配置、历史与日志不上传。接受模型许可后，第二台电脑可以运行 `scripts/install_japanese_model.py`，或复制完整 `resources/translation/ja_en_lfm/` 和已有 `en_zh/`。其他失败候选均为开发机的忽略缓存，不进入发行包。

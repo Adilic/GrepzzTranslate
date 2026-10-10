@@ -97,7 +97,7 @@ Alt+Q → hotkey.py → capture.py 截图框选
 
 截图识别、读音、翻译是三件不同的事：OCR 错一个汉字，后续注音和译文都可能错；读音由 Sudachi 提供，不是翻译模型生成。日语机器翻译通过日→英→中，不能把它当成精确词典。日语 SQLite 只有少量演示释义，不代表只能注音这些词。
 
-v0.1.7 增加可选 LFM2 日英模型：`japanese_model.py` 调用本地隐藏的 llama.cpp completion 进程，`translation.py` 再调用英中模型。它保存在 `resources/translation/ja_en_lfm/`，完整复制即可跨电脑使用；缺少此目录时兼容原来的 `ja_en/`。该模型采用 LFM Open License v1.0，含商业营收限制，不是 Apache/MIT；选择前请阅读 README 的许可和安装说明。运行时无须 PyTorch，测试转换环境 `build/model-eval-env/` 不迁移、不打包。Git 仅同步安装脚本和代码，模型可由 `scripts/install_japanese_model.py` 固定版本重建。
+v0.1.7 主项目及日常 EXE 已接入 LFM2 日英模型：`japanese_model.py` 调用本地隐藏的 llama.cpp completion 进程，`translation.py` 再调用英中模型。它保存在 `resources/translation/ja_en_lfm/`，完整复制即可跨电脑使用；缺少此目录时兼容原来的 `ja_en/`。该模型采用 LFM Open License v1.0，含商业营收限制，不是 Apache/MIT；许可和安装说明见 README；复杂否定仍有已知误译。运行时无须 PyTorch，测试转换环境 `build/model-eval-env/` 不迁移、不打包。Git 仅同步安装脚本和代码，模型可由 `scripts/install_japanese_model.py` 固定版本重建。
 
 Qt 主线程负责界面和快捷键，QThread 中的 worker 负责 OCR 和查询。请求编号用于防止关闭浮窗后旧结果重新出现。查词模型延迟加载并复用，实际运行不访问翻译服务。
 
